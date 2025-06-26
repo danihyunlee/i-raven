@@ -26,10 +26,19 @@ def merge_component(dst_aot, src_aot, component_idx):
 
 def separate(args, all_configs):
     random.seed(args.seed)
-    np.random.seed(args.seed)
+    np.random.seed(args.seed)    
 
     for key in list(all_configs.keys()):
         acc = 0
+
+        if(args.limit_rules):
+            root = all_configs[key]
+            while True:
+                rule_groups = sample_rules()
+                new_root = root.prune(rule_groups)
+                if new_root is not None:
+                    break
+
         for k in trange(args.num_samples):
             count_num = k % 10
             if count_num < (10 - args.val - args.test):
@@ -38,13 +47,14 @@ def separate(args, all_configs):
                 set_name = "val"
             else:
                 set_name = "test"
-
-            root = all_configs[key]
-            while True:
-                rule_groups = sample_rules()
-                new_root = root.prune(rule_groups)
-                if new_root is not None:
-                    break
+            
+            if(not args.limit_rules):
+                root = all_configs[key]
+                while True:
+                    rule_groups = sample_rules()
+                    new_root = root.prune(rule_groups)
+                    if new_root is not None:
+                        break
 
             start_node = new_root.sample()
 
@@ -234,6 +244,11 @@ def main():
                                  help="the proportion of the size of validation set")
     main_arg_parser.add_argument("--test", type=float, default=2,
                                  help="the proportion of the size of test set")
+    main_arg_parser.add_argument("--train", type=float, default=8,
+                                 help="the proportion of the size of train set")
+    main_arg_parser.add_argument("--limit-rules", action="store_true",
+                                 help="whether to limit the number of rules")
+
     args = main_arg_parser.parse_args()
 
     all_configs = {"center_single": build_center_single(),
