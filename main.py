@@ -260,11 +260,11 @@ def main():
                    "in_distribute_four_out_center_single": build_in_distribute_four_out_center_single()}
 
     if not os.path.exists(args.save_dir):
-        os.mkdir(args.save_dir)
+        os.makedirs(args.save_dir)
     if not args.fuse:
         for key in list(all_configs.keys()):
             if not os.path.exists(os.path.join(args.save_dir, key)):
-                os.mkdir(os.path.join(args.save_dir, key))
+                os.makedirs(os.path.join(args.save_dir, key))
         separate(args, all_configs)
 
 
