@@ -2,13 +2,14 @@
 
 
 # Maximum number of components in a RPM
+ADJUST_FACTOR = 0.5
 MAX_COMPONENTS = 2
 
 # Canvas parameters
-IMAGE_SIZE = 160
+IMAGE_SIZE = int(160*ADJUST_FACTOR)
 CENTER = (IMAGE_SIZE // 2, IMAGE_SIZE // 2)
 DEFAULT_RADIUS = IMAGE_SIZE // 4
-DEFAULT_WIDTH = 2
+DEFAULT_WIDTH = int(2*ADJUST_FACTOR)
 
 # Attribute parameters
 # Number
@@ -28,6 +29,7 @@ TYPE_MAX = len(TYPE_VALUES) - 1
 
 # Size
 SIZE_VALUES = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
 SIZE_MIN = 0
 SIZE_MAX = len(SIZE_VALUES) - 1
 

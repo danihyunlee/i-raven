@@ -66,7 +66,7 @@ def generate_matrix_answer(array_list):
 def merge_matrix_answer(matrix, answer):
     matrix_image = generate_matrix(matrix)
     answer_image = generate_answers(answer)
-    img_grid = np.ones((IMAGE_SIZE * 5 + 20, IMAGE_SIZE * 4), np.uint8) * 255
+    img_grid = np.ones((IMAGE_SIZE * 5 + IMAGE_SIZE//8, IMAGE_SIZE * 4), np.uint8) * 255
     img_grid[:IMAGE_SIZE * 3, int(0.5 * IMAGE_SIZE):int(3.5 * IMAGE_SIZE)] = matrix_image
     img_grid[-(IMAGE_SIZE * 2):, :] = answer_image
     return img_grid
