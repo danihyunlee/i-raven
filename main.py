@@ -24,38 +24,47 @@ def merge_component(dst_aot, src_aot, component_idx):
     dst_aot.children[0].children[component_idx] = src_component
 
 
+def sample_new_root(all_configs, key):
+    root = all_configs[key]
+    while True:
+        rule_groups = sample_rules()
+        new_root = root.prune(rule_groups)
+        if new_root is not None:
+            return new_root, rule_groups
+
 def separate(args, all_configs):
     random.seed(args.seed)
-    np.random.seed(args.seed)    
+    np.random.seed(args.seed)   
+
+    if args.num_rules:
+        assert int(args.num_samples * (10 - args.val - args.test) // 10) % args.num_rules == 0
 
     for key in list(all_configs.keys()):
         acc = 0
 
-        if(args.limit_rules):
-            root = all_configs[key]
-            while True:
-                rule_groups = sample_rules()
-                new_root = root.prune(rule_groups)
-                if new_root is not None:
-                    break
+        count = 0
+        max_k = (args.num_samples * (10 - args.val - args.test) // 10) // args.num_rules
+        current_root, current_rule_groups = sample_new_root(all_configs, key)
+        new_root, rule_groups = current_root, current_rule_groups
 
         for k in trange(args.num_samples):
+            if(count >= max_k):
+                current_root, current_rule_groups = sample_new_root(all_configs, key)
+                count = 0
+
             count_num = k % 10
             if count_num < (10 - args.val - args.test):
                 set_name = "train"
+                count += 1
+                new_root, rule_groups = copy.deepcopy(current_root), copy.deepcopy(current_rule_groups)
+
             elif count_num < (10 - args.test):
                 set_name = "val"
+                new_root, rule_groups = copy.deepcopy(current_root), copy.deepcopy(current_rule_groups)
             else:
                 set_name = "test"
+                new_root, rule_groups = sample_new_root(all_configs, key)
             
-            if(not args.limit_rules):
-                root = all_configs[key]
-                while True:
-                    rule_groups = sample_rules()
-                    new_root = root.prune(rule_groups)
-                    if new_root is not None:
-                        break
-
             start_node = new_root.sample()
 
             row_1_1 = copy.deepcopy(start_node)
@@ -241,13 +250,13 @@ def main():
     main_arg_parser.add_argument("--fuse", type=int, default=0,
                                  help="whether to fuse different configurations")
     main_arg_parser.add_argument("--val", type=float, default=2,
-                                 help="the proportion of the size of validation set")
+                                 help="the proportion of the size of validation (id) set")
     main_arg_parser.add_argument("--test", type=float, default=2,
-                                 help="the proportion of the size of test set")
+                                 help="the proportion of the size of test (od) set")
     main_arg_parser.add_argument("--train", type=float, default=8,
                                  help="the proportion of the size of train set")
-    main_arg_parser.add_argument("--limit-rules", action="store_true",
-                                 help="whether to limit the number of rules")
+    main_arg_parser.add_argument("--num-rules", type=int, default=10,
+                                 help="the number of rules to limit generation to")
 
     args = main_arg_parser.parse_args()
 
